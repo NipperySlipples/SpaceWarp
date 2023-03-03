@@ -1,46 +1,45 @@
-﻿using System.Collections.Generic;
+﻿using KSP.Game;
 using KSP.Sim.impl;
+using SpaceWarp.API.Assets;
+using SpaceWarp.API.UI.Appbar;
 using UnityEngine;
-using SpaceWarp.API;
 
 namespace SpaceWarp.UI;
 
-public class SpaceWarpConsole : KerbalBehavior
+public sealed class SpaceWarpConsole : KerbalMonoBehaviour
 {
-    private static bool _loaded;
-
     private bool _drawUI;
     private Rect _windowRect;
     bool _autoScroll = true;
 
+    private const ControlTypes ConsoleLocks = ControlTypes.All;
+    private const string ConsoleLockID = "spacewarp.console";
+
     private int _windowWidth = 350;
     private int _windowHeight = 700;
 
-    private static GUIStyle _boxStyle;
     private static Vector2 _scrollPosition;
     private static Vector2 _scrollView;
 
-    private readonly Queue<string> _debugMessages = new();
+    private string _search = "";
 
-    public new void Start()
+    private void Awake()
     {
-        if (_loaded)
-        {
-            Destroy(this);
-        }
-
-        _loaded = true;
-    }
-
-    private new void Awake()
-    {
-
         _windowWidth = (int)(Screen.width * 0.5f);
         _windowHeight = (int)(Screen.height * 0.5f);
 
-        _windowRect = new Rect((Screen.width * 0.15f), (Screen.height * 0.15f), 0, 0);
+        _windowRect = new Rect(Screen.width * 0.15f, Screen.height * 0.15f, 0, 0);
         _scrollPosition = Vector2.zero;
-        
+        Appbar.RegisterAppButton(
+            "Console",
+            "BTN-SWConsole",
+            // Example of using the asset loader, were going to load the apps icon
+            // Path format [mod_id]/images/filename
+            // for bundles its [mod_id]/[bundle_name]/[path to file in bundle with out assets/bundle]/filename.extension
+            // There is also a try get asset function, that returns a bool on whether or not it could grab the asset
+            AssetManager.GetAsset<Texture2D>($"spacewarp/images/console.png"),
+            ToggleVisible
+            );
     }
 
     private void OnGUI()
@@ -52,7 +51,7 @@ public class SpaceWarpConsole : KerbalBehavior
         }
 
         int controlID = GUIUtility.GetControlID(FocusType.Passive);
-        string header = $"spacewarp.console";
+        string header = "spacewarp.console";
         GUILayoutOption width = GUILayout.Width((float)(_windowWidth * 0.8));
         GUILayoutOption height = GUILayout.Height((float)(_windowHeight * 0.8));
         
@@ -63,23 +62,23 @@ public class SpaceWarpConsole : KerbalBehavior
     {
         if (Input.GetKey(KeyCode.LeftAlt) && Input.GetKeyDown(KeyCode.C))
         {
-            _drawUI = !_drawUI;
+            ToggleVisible(!_drawUI);
         }
     }
 
     private void DrawConsole(int windowID)
     {
-        _boxStyle = GUI.skin.GetStyle("Box");
         GUILayout.BeginVertical();
+        _search = GUILayout.TextField(_search);
         _scrollView = GUILayout.BeginScrollView(_scrollPosition, false, true);
  
         foreach (string message in SpaceWarpConsoleLogListener.DebugMessages)
         {
-            string new_message = "" + message + "\n";
-            GUILayout.Label( new_message);
+            if (!message.ToLower().Contains(_search.ToLower())) continue;
+            GUILayout.Label(message);
             if(_autoScroll)
             {
-                _scrollView.Set(_scrollView.x, Mathf.Infinity );
+                _scrollView.Set(_scrollView.x, Mathf.Infinity);
                 _scrollPosition = _scrollView;
             }
             else
@@ -102,7 +101,7 @@ public class SpaceWarpConsole : KerbalBehavior
             SpaceWarpConsoleLogListener.DebugMessages.Clear();
         }
 
-        if (GUILayout.Button( _autoScroll ? "Auto Scroll: On" : "Auto Scroll: Off" ))
+        if (GUILayout.Button(_autoScroll ? "Auto Scroll: On" : "Auto Scroll: Off"))
         {
             //Todo: Add proper close button to top corner and add input lock button back. 
             // GameManager.Instance.Game.ViewController.inputLockManager.ClearControlLocks();
@@ -112,5 +111,10 @@ public class SpaceWarpConsole : KerbalBehavior
         GUILayout.EndHorizontal();
         GUILayout.EndVertical();
         GUI.DragWindow(new Rect(0, 0, 10000, 500));
+    }
+    public void ToggleVisible(bool shouldDraw)
+    {
+        _drawUI = shouldDraw;
+        Game.ViewController.inputLockManager.SetControlLock(_drawUI ? ConsoleLocks : ControlTypes.None, ConsoleLockID);
     }
 }

@@ -1,20 +1,22 @@
-﻿using SpaceWarp.API.Mods;
-using SpaceWarp.API.AssetBundles;
-using SpaceWarp.API;
+﻿using BepInEx;
+using SpaceWarp.API.Mods;
+using SpaceWarp.API.Assets;
 using KSP.UI.Binding;
 using KSP.Sim.impl;
+using SpaceWarp;
+using SpaceWarp.API.UI;
+using SpaceWarp.API.UI.Appbar;
 using UnityEngine;
 
 namespace ExampleMod;
 
-[MainMod]
-public class ExampleMod : Mod
+[BepInPlugin("com.SpaceWarpAuthorName.ExampleMod", "ExampleMod", "3.0.0")]
+[BepInDependency(SpaceWarpPlugin.ModGuid, SpaceWarpPlugin.ModVer)]
+public class ExampleMod : BaseSpaceWarpPlugin
 {
-    public GUISkin _spaceWarpUISkin;
 
     private bool drawUI;
     private Rect windowRect;
-    private bool loaded;
 
     private static ExampleMod Instance { get; set; }
 
@@ -25,30 +27,22 @@ public class ExampleMod : Mod
     public override void OnInitialized()
     {
         base.OnInitialized();
-
-        if (loaded)
-        {
-            Destroy(this);
-        }
-
-        loaded = true;
         Instance = this;
 
         // Example of using the logger, Were going to log a message to the console, ALT + C to open the console.
-        Logger.Info("Hello World, Im a spacewarp Mod.");
+        Logger.LogInfo("Hello World, Im a spacewarp Mod.");
 
-        // Example of using the asset loader, were going to load the SpaceWarp GUI skin.
-        // [FORMAT]: space_warp/[assetbundle_name]/[folder_in_assetbundle]/[file.type]
-        ResourceManager.TryGetAsset(
-            "space_warp/swconsoleui/swconsoleUI/spacewarpConsole.guiskin",
-            out _spaceWarpUISkin
-        );
 
-        // Register the mod's button on the SpaceWarp application bar.
-        SpaceWarpManager.RegisterAppButton(
+        // Register the mod's button in KSP 2s app.bar
+        // This requires an `icon.png` file to exist under [plugin_folder]/assets/images
+        Appbar.RegisterAppButton(
             "Example Mod",
             "BTN-ExampleMod",
-            SpaceWarpManager.LoadIcon(),
+            // Example of using the asset loader, were going to load the apps icon
+            // Path format [mod_id]/images/filename
+            // for bundles its [mod_id]/[bundle_name]/[path to file in bundle with out assets/bundle]/filename.extension
+            // There is also a try get asset function, that returns a bool on whether or not it could grab the asset
+            AssetManager.GetAsset<Texture2D>($"{SpaceWarpMetadata.ModID}/images/icon.png"),
             ToggleButton
         );
     }
@@ -72,7 +66,7 @@ public class ExampleMod : Mod
     public void OnGUI()
     {
         // Set the GUI skin to the SpaceWarp GUI skin.
-        GUI.skin = _spaceWarpUISkin;
+        GUI.skin = Skins.ConsoleSkin;
 
         if (drawUI)
         {
@@ -115,11 +109,11 @@ public class ExampleMod : Mod
             if (_activeVessel != null)
             {
                 _activeVessel.ActivateNextStage();
-                Logger.Warn("Stagin Active Vessel: " + _activeVessel.Name);
+                Logger.LogWarning("Stagin Active Vessel: " + _activeVessel.Name);
                 VesselBehavior behavior = Game.ViewController.GetBehaviorIfLoaded(_activeVessel);
                 foreach (PartBehavior pb in behavior.parts)
                 {
-                    Logger.Warn(pb.name);
+                    Logger.LogWarning(pb.name);
                 }
             }
         }
