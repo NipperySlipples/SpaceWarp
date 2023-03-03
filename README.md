@@ -3,9 +3,19 @@
 # Space Warp
 ![Downloads](https://img.shields.io/github/downloads/X606/SpaceWarp/latest/total.svg?label=%E2%A4%93%20Downloads&style=plastic)
 
+[Documentation](https://spacewarpdocs.readthedocs.io/en/latest/index.html)
+
 Space Warp is a mod loader for Kerbal Space Program 2.
 
 Note: Use at your own risk, as this is an early version that is expected to undergo many changes.
+
+## Installation
+
+Download the latest release from this page under the "Releases" section above
+
+Drag the contents of the .zip folder into your KSP2 directory, commonly located at "C:\Steam\steamapps\common\Kerbal Space Program 2\"
+
+Drag your downloaded mods into the folder now located at "C:\Steam\steamapps\common\Kerbal Space Program 2\SpaceWarp\Mods"
 
 ## Compiling
 
