@@ -10,7 +10,8 @@ namespace SpaceWarp.API.UI.Appbar;
 public static class Appbar
 {
     private static readonly List<(string text, Sprite icon, string ID, Action<bool> action)> ButtonsToBeLoaded = new();
-    
+    private static readonly List<(string text, Sprite icon, string ID, Action<bool> action)> ButtonsToBeLoadedOAB = new();
+
     /// <summary>
     /// Register a appbar menu for the game
     /// </summary>
@@ -32,6 +33,20 @@ public static class Appbar
         ButtonsToBeLoaded.Add((text, icon, id, menu.ToggleGUI));
         return menu as T;
     }
+    public static T RegisterGameAppbarMenuOAB<T>(string text, string title, string id, Sprite icon) where T : AppbarMenu
+    {
+        GameObject toolBarUIObject = new GameObject($"ToolbarOAB: {id}");
+        toolBarUIObject.Persist();
+        AppbarMenu menu = toolBarUIObject.AddComponent<T>();
+        menu.Title = title;
+        menu.ID = id;
+        toolBarUIObject.transform.SetParent(Chainloader.ManagerObject.transform);
+        toolBarUIObject.SetActive(true);
+        ButtonsToBeLoadedOAB.Add((text, icon, id, menu.ToggleGUI));
+        return menu as T;
+    }
+
+
 
     /// <summary>
     /// Register a appbar menu for the game
@@ -44,7 +59,10 @@ public static class Appbar
     /// <returns>An instance of T which has been added to a GameObject</returns>
     public static T RegisterGameAppbarMenu<T>(string text, string title, string id, Texture2D icon) where T : AppbarMenu =>
         RegisterGameAppbarMenu<T>(text, title, id, GetAppBarIconFromTexture(icon));
-    
+
+    public static T RegisterGameAppbarMenuOAB<T>(string text, string title, string id, Texture2D icon) where T : AppbarMenu =>
+    RegisterGameAppbarMenuOAB<T>(text, title, id, GetAppBarIconFromTexture(icon));
+
     /// <summary>
     /// Register a button on the games AppBar
     /// </summary>
@@ -53,7 +71,9 @@ public static class Appbar
     /// <param name="icon">A Sprite for the icon in the appbar</param>
     /// <param name="func">The function to be called when this button is clicked</param>
     public static void RegisterAppButton(string text, string id, Sprite icon, Action<bool> func) => ButtonsToBeLoaded.Add((text ,icon, id, func));
-    
+
+    public static void RegisterAppButtonOAB(string text, string id, Sprite icon, Action<bool> func) => ButtonsToBeLoadedOAB.Add((text, icon, id, func));
+
     /// <summary>
     /// Register a button on the games AppBar
     /// </summary>
@@ -63,8 +83,9 @@ public static class Appbar
     /// <param name="func">The function to be called when this button is clicked</param>
     public static void RegisterAppButton(string text, string id, Texture2D icon, Action<bool> func) =>
         RegisterAppButton(text, id, GetAppBarIconFromTexture(icon), func);
-    
-    
+
+    public static void RegisterAppButtonOAB(string text, string id, Texture2D icon, Action<bool> func) =>
+    RegisterAppButtonOAB(text, id, GetAppBarIconFromTexture(icon), func);
     /// <summary>
     /// Convert a Texture2D to a Sprite
     /// </summary>
@@ -85,7 +106,22 @@ public static class Appbar
     {
         foreach (var button in ButtonsToBeLoaded)
         {
-            AppbarBackend.AddButton(button.text, button.icon, button.ID, button.action);
+            GameObject appBarButton = AppbarBackend.AddButton(button.text, button.icon, button.ID, button.action);
+            
+
+
         }
     }
+
+    internal static void LoadAllButtonsOAB()
+    {
+        foreach (var button in ButtonsToBeLoadedOAB)
+        {
+          
+             GameObject appBarButtonOAB = AppbarBackend.AddButtonOAB(button.text, button.icon, button.ID, button.action);
+             
+   
+        }
+    }
+
 }

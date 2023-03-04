@@ -42,6 +42,17 @@ public sealed class SpaceWarpConsole : KerbalMonoBehaviour
             AssetManager.GetAsset<Texture2D>($"spacewarp/images/console.png"),
             ToggleVisible
             );
+
+        Appbar.RegisterAppButtonOAB(
+           "Console",
+           "BTN-SWConsoleOAB",
+           // Example of using the asset loader, were going to load the apps icon
+           // Path format [mod_id]/images/filename
+           // for bundles its [mod_id]/[bundle_name]/[path to file in bundle with out assets/bundle]/filename.extension
+           // There is also a try get asset function, that returns a bool on whether or not it could grab the asset
+           AssetManager.GetAsset<Texture2D>($"spacewarp/images/console.png"),
+           ToggleVisible
+           );
     }
 
     private void OnGUI()
